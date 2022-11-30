@@ -86,6 +86,32 @@ export class MenuItemsService {
   */
 
   async getMenuItems() {
-    throw new Error('TODO in task 3');
+   // throw new Error('TODO in task 3');
+    let menuList = await this.menuItemRepository.find();
+    let parentIds:any[] = [];
+    let res:any[]= [];
+    menuList.forEach(menu =>{
+        parentIds.push(menu.parentId);
+    });
+    parentIds = [...new Set(parentIds)];
+    menuList.forEach(menu =>{
+        let result:any[] = [];
+        parentIds.forEach(item =>{
+                if(item==menu.parentId){
+                    result.push(menu)
+                }
+            });
+            res.push({
+                "id":menu.id,
+                "name":menu.name,
+                "url":menu.url,
+                "parentId":menu.parentId,
+                "createdAt":menu.createdAt,
+                "children":result
+            })
+
+    });
+    
+    return res;
   }
 }
