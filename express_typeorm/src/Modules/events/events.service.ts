@@ -1,13 +1,17 @@
 import { Repository } from 'typeorm';
 import { Event } from './entities/event.entity';
+import {Workshop} from './entities/workshop.entity';
 import App from "../../app";
+import e from 'express';
 
 
 export class EventsService {
   private eventRepository: Repository<Event>;
+  private workshopRepository: Repository<Workshop>;
 
   constructor(app: App) {
     this.eventRepository = app.getDataSource().getRepository(Event);
+    this.workshopRepository = app.getDataSource().getRepository(Workshop);
   }
 
   async getWarmupEvents() {
@@ -92,7 +96,22 @@ export class EventsService {
      */
 
   async getEventsWithWorkshops() {
-    throw new Error('TODO task 1');
+    const workshop = await this.workshopRepository.find();
+    const eventsList =  (await this.eventRepository.find()).sort();
+    const res:any[] = [];
+    eventsList.forEach(event =>{
+      for(let item of workshop){
+        if(event.id == item.eventId){         
+          res.push({
+            "id":event.id,
+            "name":event.name,
+            "createdAt":event.createdAt,
+            "workshops":item
+          });
+        }
+      }
+    });
+    return res;
   }
 
   /* TODO: complete getFutureEventWithWorkshops so that it returns events with workshops, that have not yet started
@@ -161,7 +180,31 @@ export class EventsService {
     ]
     ```
      */
-  async getFutureEventWithWorkshops() {
-    throw new Error('TODO task 2');
+  async getFutureEventWithWorkshops() {    
+    const eventsList =  (await this.eventRepository.find()).sort();
+    const workshops = await this.workshopRepository.find();
+    let itemList:any[] = [];
+    
+    // Filtering future workshops
+    let a = workshops.filter(workshop =>{
+    let todayDt = new Date();
+    let startDt = new Date(workshop.start);
+      if(startDt.getTime() > todayDt.getTime()){        
+        return true;
+      }
+    });
+    
+
+
+    eventsList.forEach(item =>{
+      let workshops:any[] = [];
+      a.forEach(workshop => {
+        if(item.id == workshop.eventId){
+          workshops.push(workshop);
+        }
+      })
+      itemList.push({item,workshops});
+    });   
+    return itemList.filter(c=>c.workshops.length>0);
   }
 }
