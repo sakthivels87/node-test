@@ -100,16 +100,18 @@ export class EventsService {
     const eventsList =  (await this.eventRepository.find()).sort();
     const res:any[] = [];
     eventsList.forEach(event =>{
+      let workshops:any[] = [];
       for(let item of workshop){
-        if(event.id == item.eventId){         
-          res.push({
-            "id":event.id,
-            "name":event.name,
-            "createdAt":event.createdAt,
-            "workshops":item
-          });
+        if(event.id == item.eventId){ 
+          workshops.push(item);
         }
       }
+      res.push({
+        "id":event.id,
+        "name":event.name,
+        "createdAt":event.createdAt,
+        workshops
+      });
     });
     return res;
   }
@@ -194,8 +196,6 @@ export class EventsService {
       }
     });
     
-
-
     eventsList.forEach(item =>{
       let workshops:any[] = [];
       a.forEach(workshop => {
@@ -203,7 +203,9 @@ export class EventsService {
           workshops.push(workshop);
         }
       })
-      itemList.push({item,workshops});
+      itemList.push({"id":item.id,
+      "name":item.name,
+      "createdAt":item.createdAt,workshops});
     });   
     return itemList.filter(c=>c.workshops.length>0);
   }
